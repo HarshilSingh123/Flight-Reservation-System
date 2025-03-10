@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Reservation System</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+            font-family: Arial, sans-serif;
+            flex-direction: column;
+            text-align: center;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 50%;
+        }
+        button {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .seating-area {
+            display: grid;
+            grid-template-columns: repeat(3, 30px) 20px repeat(3, 30px);
+            gap: 5px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .seat {
+            width: 30px;
+            height: 30px;
+            background-color: lightgray;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .seat.selected {
+            background-color: green;
+            color: white;
+        }
+        .seat.extra-legroom {
+            background-color: gold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="intro-screen">
+            <h1>Welcome to SkyFly Reservation</h1>
+            <button onclick="showBookingForm()">Book Now</button>
+        </div>
+
+        <div id="booking-form" style="display: none;">
+            <h2>Enter Passenger Details</h2>
+            <label>No. of Passengers:</label>
+            <input type="number" id="numPassengers" min="1" value="1" onchange="generatePassengerFields()">
+            <div id="passenger-details"></div>
+            <button onclick="showFlightSelection()">Next</button>
+        </div>
+
+        <div id="flight-selection" style="display: none;">
+            <h2>Select Flight</h2>
+            <label>Destination:</label>
+            <select id="destination">
+                <option value="NYC">New York</option>
+                <option value="LAX">Los Angeles</option>
+                <option value="LDN">London</option>
+            </select>
+            <label>Flight Company:</label>
+            <select id="flightCompany">
+                <option value="Airways A">Airways A</option>
+                <option value="Airways B">Airways B</option>
+            </select>
+            <button onclick="showSeatSelection()">Next</button>
+        </div>
+
+        <div id="seat-selection" style="display: none;">
+            <h2>Select Seats</h2>
+            <div class="seating-area" id="seating-area"></div>
+            <button onclick="showBilling()">Proceed to Billing</button>
+        </div>
+
+        <div id="billing" style="display: none;">
+            <h2>Billing Summary</h2>
+            <div id="bill-details"></div>
+            <button onclick="confirmBooking()">Confirm Booking</button>
+        </div>
+    </div>
+
+    <script>
+        function showBookingForm() {
+            document.getElementById('intro-screen').style.display = 'none';
+            document.getElementById('booking-form').style.display = 'block';
+        }
+
+        function showFlightSelection() {
+            document.getElementById('booking-form').style.display = 'none';
+            document.getElementById('flight-selection').style.display = 'block';
+        }
+
+        function showSeatSelection() {
+            document.getElementById('flight-selection').style.display = 'none';
+            document.getElementById('seat-selection').style.display = 'block';
+            generateSeatingChart();
+        }
+
+        function showBilling() {
+            document.getElementById('seat-selection').style.display = 'none';
+            document.getElementById('billing').style.display = 'block';
+            generateBill();
+        }
+
+        function confirmBooking() {
+            alert('Your booking has been confirmed!');
+        }
+
+        function generateSeatingChart() {
+            let seatingArea = document.getElementById('seating-area');
+            seatingArea.innerHTML = '';
+            for (let row = 1; row <= 10; row++) {
+                for (let col = 1; col <= 6; col++) {
+                    if (col === 4) {
+                        let spacer = document.createElement('div');
+                        spacer.style.width = '20px';
+                        seatingArea.appendChild(spacer);
+                    }
+                    let seat = document.createElement('div');
+                    seat.className = 'seat';
+                    seat.innerText = `${row}${String.fromCharCode(64 + col)}`;
+                    seat.id = `seat-${row}${String.fromCharCode(64 + col)}`;
+                    if (row === 1 || row === 2) {
+                        seat.classList.add('extra-legroom');
+                    }
+                    seat.onclick = function() { toggleSeatSelection(this); };
+                    seatingArea.appendChild(seat);
+                }
+            }
+        }
+
+        function toggleSeatSelection(seat) {
+            seat.classList.toggle('selected');
+        }
+
+        function generateBill() {
+            let selectedSeats = document.querySelectorAll('.seat.selected');
+            let seatNumbers = Array.from(selectedSeats).map(seat => seat.innerText);
+            let billDetails = document.getElementById('bill-details');
+            billDetails.innerHTML = `<p>Seats Selected: ${seatNumbers.join(', ')}</p>`;
+        }
+    </script>
+</body>
+</html>
