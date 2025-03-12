@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flight Reservation System</title>
+    <title>JoJo Airlines Reservation</title>
     <link rel="stylesheet" href="styles.css">
     <style>
         body {
@@ -47,16 +47,20 @@
             background-color: green;
             color: white;
         }
-        .row {
+        .seat.aisle {
+            visibility: hidden;
+        }
+        .seat.extra-legroom {
+            background-color: gold;
+        }
+        .passenger-input {
             display: flex;
-            justify-content: center;
-            margin-bottom: 10px;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-bottom: 20px;
         }
-        .aisle {
-            width: 30px;
-        }
-        .extra-legroom {
-            border: 2px solid orange;
+        .passenger-input label, .passenger-input input {
+            margin: 5px;
         }
     </style>
 </head>
@@ -70,7 +74,12 @@
         <div id="booking-form" style="display: none;">
             <h2>Enter Passenger Details</h2>
             <label>No. of Passengers:</label>
-            <input type="number" id="numPassengers" min="1" value="1" onchange="generatePassengerFields()">
+            <input type="number" id="numPassengers" min="1" value="1">
+            <button onclick="showPassengerInfoForm()">Next</button>
+        </div>
+
+        <div id="passenger-info-form" style="display: none;">
+            <h2>Passenger Information</h2>
             <div id="passenger-details"></div>
             <button onclick="showFlightSelection()">Next</button>
         </div>
@@ -110,6 +119,11 @@
         function showBookingForm() {
             document.getElementById('intro-screen').style.display = 'none';
             document.getElementById('booking-form').style.display = 'block';
+        }
+
+        function showPassengerInfoForm() {
+            document.getElementById('booking-form').style.display = 'none';
+            document.getElementById('passenger-info-form').style.display = 'block';
             generatePassengerFields();
         }
 
@@ -119,16 +133,18 @@
             let num = document.getElementById('numPassengers').value;
             for (let i = 1; i <= num; i++) {
                 container.innerHTML += `
-                    <div>
+                    <div class="passenger-input">
                         <h4>Passenger ${i}</h4>
-                        <label>Name: </label><input type="text" id="passengerName${i}"><br>
+                        <label>Name:</label> <input type="text" id="passengerName${i}">
+                        <label>Age:</label> <input type="number" id="passengerAge${i}">
+                        <label>ID Number:</label> <input type="text" id="passengerId${i}">
                     </div>
                 `;
             }
         }
 
         function showFlightSelection() {
-            document.getElementById('booking-form').style.display = 'none';
+            document.getElementById('passenger-info-form').style.display = 'none';
             document.getElementById('flight-selection').style.display = 'block';
         }
 
@@ -145,34 +161,32 @@
         }
 
         function confirmBooking() {
-            alert('Your booking with JoJo Airlines has been confirmed!');
+            alert('Your booking has been confirmed!');
         }
 
         function generateSeatingChart() {
             let seatingArea = document.getElementById('seating-area');
             seatingArea.innerHTML = '';
-            const seatsPerRow = 6;
             const rows = 10;
+            const cols = 6;
 
-            for (let i = 0; i < rows; i++) {
-                let row = document.createElement('div');
-                row.className = 'row';
-                for (let j = 0; j < seatsPerRow; j++) {
-                    if (j === 3) {
-                        let aisle = document.createElement('div');
-                        aisle.className = 'aisle';
-                        row.appendChild(aisle);
+            for (let r = 1; r <= rows; r++) {
+                for (let c = 1; c <= cols; c++) {
+                    if (c === 4) {
+                        const aisle = document.createElement('div');
+                        aisle.className = 'seat aisle';
+                        seatingArea.appendChild(aisle);
                     }
-                    let seatNumber = `${String.fromCharCode(65 + j > 67 ? j - 1 : j)}${i + 1}`;
-                    let seat = document.createElement('div');
+                    const seat = document.createElement('div');
                     seat.className = 'seat';
-                    if (i === 0 || i === 1) seat.classList.add('extra-legroom');
-                    seat.id = 'seat-' + seatNumber;
-                    seat.innerText = seatNumber;
-                    seat.onclick = function () { toggleSeatSelection(this); };
-                    row.appendChild(seat);
+                    const seatId = String.fromCharCode(64 + r) + (c > 3 ? c - 1 : c);
+                    seat.innerText = seatId;
+                    seat.id = 'seat-' + seatId;
+                    if (r <= 2) seat.classList.add('extra-legroom');
+                    seat.onclick = function() { toggleSeatSelection(this); };
+                    seatingArea.appendChild(seat);
                 }
-                seatingArea.appendChild(row);
+                seatingArea.appendChild(document.createElement('br'));
             }
         }
 
@@ -182,7 +196,7 @@
 
         function generateBill() {
             let selectedSeats = document.querySelectorAll('.seat.selected');
-            let seatNumbers = Array.from(selectedSeats).map(seat => seat.innerText);
+            let seatNumbers = Array.from(selectedSeats).map(seat => seat.id.replace('seat-', ''));
             let billDetails = document.getElementById('bill-details');
 
             let num = document.getElementById('numPassengers').value;
@@ -190,12 +204,14 @@
 
             for (let i = 1; i <= num; i++) {
                 let name = document.getElementById(`passengerName${i}`).value || 'N/A';
-                passengerData.push({ name: name, seat: seatNumbers[i - 1] || 'Not Selected' });
+                let age = document.getElementById(`passengerAge${i}`).value || 'N/A';
+                let id = document.getElementById(`passengerId${i}`).value || 'N/A';
+                passengerData.push({ name, age, id, seat: seatNumbers[i - 1] || 'Not Selected' });
             }
 
             let summary = '<ul>';
             passengerData.forEach((p, index) => {
-                summary += `<li>Passenger ${index + 1}: ${p.name}, Seat: ${p.seat}</li>`;
+                summary += `<li>Passenger ${index + 1}: ${p.name}, Age: ${p.age}, ID: ${p.id}, Seat: ${p.seat}</li>`;
             });
             summary += '</ul>';
 
